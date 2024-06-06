@@ -48,7 +48,7 @@ func (server *Server) Handle(conn net.Conn) {
 	user.Online()
 
 	for {
-		buf := make([]byte, 1024)
+		buf := make([]byte, 4096)
 		n, err := conn.Read(buf)
 		if n == 0 {
 			user.Offline()

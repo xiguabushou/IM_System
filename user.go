@@ -41,7 +41,7 @@ func (user *User) Offline() {
 	user.Server.Broadcast(user, "offline")
 }
 
-func (user *User) sendOnlinemp(onlinemessage string) {
+func (user *User) SendOnlinemp(onlinemessage string) {
 	user.conn.Write([]byte(onlinemessage))
 }
 
@@ -50,9 +50,23 @@ func (user *User) DoMsg(Msg string) {
 		user.Server.Maplock.Lock()
 		for _, userlist := range user.Server.Usermap {
 			onlinemessage := "[" + userlist.Addr + "]" + userlist.Name + "online" + "\n"
-			user.sendOnlinemp(onlinemessage)
+			user.SendOnlinemp(onlinemessage)
 		}
 		user.Server.Maplock.Unlock()
+	} else if len(Msg) > 7 && Msg[:7] == "rename:" {
+		Newname := Msg[7:]
+		_, ok := user.Server.Usermap[Newname]
+		if ok {
+			user.SendOnlinemp("The username has been used\n")
+		} else {
+			user.Server.Maplock.Lock()
+			delete(user.Server.Usermap, user.Name)
+			user.Server.Usermap[Newname] = user
+			user.Server.Maplock.Unlock()
+			user.Name = Newname
+			user.SendOnlinemp("You have changed your name to: " + user.Name + "\n")
+		}
+
 	} else {
 		user.Server.Broadcast(user, Msg)
 	}
