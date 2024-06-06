@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 )
 
 type Server struct {
@@ -47,23 +48,38 @@ func (server *Server) Handle(conn net.Conn) {
 	user := NewUser(conn, server)
 	user.Online()
 
+	islive := make(chan bool)
+
+	go func() {
+		for {
+			buf := make([]byte, 4096)
+			n, err := conn.Read(buf)
+			if n == 0 {
+				user.Offline()
+				return
+			}
+
+			if err != nil && err != io.EOF {
+				fmt.Println("read error:", err)
+				return
+			}
+
+			msg := string(buf[:n-1])
+			user.DoMsg(msg)
+		}
+	}()
+	islive <- true
 	for {
-		buf := make([]byte, 4096)
-		n, err := conn.Read(buf)
-		if n == 0 {
-			user.Offline()
+		select {
+		case <-islive:
+
+		case <-time.After(time.Second * 10):
+			user.SendOnlinemp("you are overtime ")
+			close(user.C)
+			conn.Close()
 			return
 		}
-
-		if err != nil && err != io.EOF {
-			fmt.Println("read error:", err)
-			return
-		}
-
-		msg := string(buf[:n-1])
-		user.DoMsg(msg)
 	}
-	select {}
 }
 
 func (server *Server) Start() {
