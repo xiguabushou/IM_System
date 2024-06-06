@@ -66,15 +66,16 @@ func (server *Server) Handle(conn net.Conn) {
 
 			msg := string(buf[:n-1])
 			user.DoMsg(msg)
+			islive <- true
 		}
 	}()
-	islive <- true
+
 	for {
 		select {
 		case <-islive:
 
 		case <-time.After(time.Second * 10):
-			user.SendOnlinemp("you are overtime ")
+			user.SendOnlinemp("you are overtime \n")
 			close(user.C)
 			conn.Close()
 			return

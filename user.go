@@ -73,8 +73,7 @@ func (user *User) DoMsg(Msg string) {
 }
 
 func (user *User) SendMsg() {
-	for {
-		msg := <-user.C
+	for msg := range user.C {
 		user.conn.Write([]byte(msg + "\n"))
 	}
 }
