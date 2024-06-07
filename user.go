@@ -1,6 +1,9 @@
 package main
 
-import "net"
+import (
+	"net"
+	"strings"
+)
 
 type User struct {
 	Name   string
@@ -49,7 +52,7 @@ func (user *User) DoMsg(Msg string) {
 	if Msg == "who" {
 		user.Server.Maplock.Lock()
 		for _, userlist := range user.Server.Usermap {
-			onlinemessage := "[" + userlist.Addr + "]" + userlist.Name + "online" + "\n"
+			onlinemessage := "[" + userlist.Addr + "]" + userlist.Name + " online" + "\n"
 			user.SendOnlinemp(onlinemessage)
 		}
 		user.Server.Maplock.Unlock()
@@ -67,6 +70,28 @@ func (user *User) DoMsg(Msg string) {
 			user.SendOnlinemp("You have changed your name to: " + user.Name + "\n")
 		}
 
+	} else if len(Msg) > 4 && Msg[:3] == "to:" {
+		remote := strings.Split(Msg, ":")
+		if len(remote) != 3 {
+			user.SendOnlinemp("Format error\n try like to:zhangsan:nihao\n")
+			return
+		}
+		remoteName := remote[1]
+		if remoteName == "" {
+			user.SendOnlinemp("Format error\n")
+			return
+		}
+		remoteUser, ok := user.Server.Usermap[remoteName]
+		if !ok {
+			user.SendOnlinemp("The user does not exist\n")
+			return
+		}
+		context := remote[2]
+		if context == "" {
+			user.SendOnlinemp("The content is empty\n")
+			return
+		}
+		remoteUser.SendOnlinemp(user.Name + " said to you: " + context + "\n")
 	} else {
 		user.Server.Broadcast(user, Msg)
 	}

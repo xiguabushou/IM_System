@@ -74,8 +74,8 @@ func (server *Server) Handle(conn net.Conn) {
 		select {
 		case <-islive:
 
-		case <-time.After(time.Second * 10):
-			user.SendOnlinemp("you are overtime \n")
+		case <-time.After(time.Second * 300):
+			user.SendOnlinemp("you are overtime\n")
 			close(user.C)
 			conn.Close()
 			return
