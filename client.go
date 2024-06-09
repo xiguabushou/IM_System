@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io"
 	"net"
 	"os"
+	"strings"
 )
 
 type Client struct {
@@ -37,9 +39,10 @@ func (client *Client) DealResponse() {
 
 func (client *Client) PublicChat() {
 	var chatMsg string
-
+	reader := bufio.NewReader(os.Stdin)
 	fmt.Println(">>>>>Please enter a message and enter <exit> to exit")
-	fmt.Scanln(&chatMsg)
+	chatMsg, _ = reader.ReadString('\n')
+	chatMsg = strings.TrimSpace(chatMsg)
 
 	for chatMsg != "exit" {
 		if len(chatMsg) != 0 {
@@ -51,7 +54,8 @@ func (client *Client) PublicChat() {
 			}
 			chatMsg = ""
 			fmt.Println(">>>>>Please enter a message and enter <exit> to exit")
-			fmt.Scanln(&chatMsg)
+			chatMsg, _ = reader.ReadString('\n')
+			chatMsg = strings.TrimSpace(chatMsg)
 		}
 	}
 }
@@ -70,11 +74,13 @@ func (client *Client) PrivateChat() {
 	var remoteName string
 
 	client.SelectUser()
+	reader := bufio.NewReader(os.Stdin)
 	fmt.Println(">>>>>Please Select the chat <user> and enter <exit> to exit")
 	fmt.Scanln(&remoteName)
 	for remoteName != "exit" {
 		fmt.Println(">>>>>Please enter a message and enter <exit> to exit")
-		fmt.Scanln(&chatMsg)
+		chatMsg, _ = reader.ReadString('\n')
+		chatMsg = strings.TrimSpace(chatMsg)
 		for chatMsg != "exit" {
 			if len(chatMsg) != 0 {
 				sendMsg := "to:" + remoteName + ":" + chatMsg + "\n"
@@ -86,7 +92,8 @@ func (client *Client) PrivateChat() {
 			}
 			chatMsg = ""
 			fmt.Println(">>>>>Please enter a message and enter <exit> to exit")
-			fmt.Scanln(&chatMsg)
+			chatMsg, _ = reader.ReadString('\n')
+			chatMsg = strings.TrimSpace(chatMsg)
 		}
 		client.SelectUser()
 		fmt.Println(">>>>>Please Select the chat <user> and enter <exit> to exit")
